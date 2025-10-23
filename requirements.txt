@@ -1,0 +1,8 @@
+pandas
+numpy
+scikit-learn
+mlflow
+joblib
+nltk
+stop-words==2018.7.23
+#pip install -r requirements.txt lezmek tsob 
