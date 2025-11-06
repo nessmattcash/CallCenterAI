@@ -92,7 +92,7 @@ stop_fr = set(get_stop_words('french'))
 stop_ar = set(get_stop_words('arabic'))
 all_stops = stop_en.union(stop_fr, stop_ar)
 
-# patterns
+#  patterns
 domain_patterns = {
     'hardware': [
         r'\b(laptop|computer|desktop|printer|monitor|keyboard|mouse|device|equipment|machine|workstation|screen|display|cable|port|technical|repair|replace|broken|damaged|not working|issue|hardware)\b',
@@ -139,20 +139,20 @@ domain_patterns = {
 def enhanced_clean_text(text):
     if pd.isna(text) or text == '':
         return ""
-    
+
     text = str(text).lower().strip()
-    
+
     if not text:
         return ""
-    
+
     # cleaning
     text = re.sub(r'http\S+|www\S+|https\S+', '', text, flags=re.MULTILINE)
     text = re.sub(r'\S*@\S*\s?', '', text)
     text = re.sub(r'[^\w\s@#]', ' ', text)
     text = re.sub(r'\d+', ' ', text)
     text = re.sub(r'\s+', ' ', text).strip()
-    
-    # Language detection function
+
+    # Language detection with enhanced patterns
     def detect_language(word):
         if re.search(r'[؀-ۿ]', word):
             return 'arabic'
@@ -160,30 +160,29 @@ def enhanced_clean_text(text):
             return 'french'
         else:
             return 'english'
-    
-    
+
     domain_keywords = []
     for domain, patterns in domain_patterns.items():
         for pattern in patterns:
             matches = re.findall(pattern, text)
             domain_keywords.extend(matches)
-    
+
     words = text.split()
     processed_words = []
-    
+
     for word in words:
         if len(word) < 2:
             continue
-            
+
         if word in domain_keywords:
             processed_words.append(word)
             continue
-            
+
         if word in all_stops:
             continue
-            
+
         lang = detect_language(word)
-        
+
         try:
             if lang == 'english':
                 stemmer = SnowballStemmer('english')
@@ -193,12 +192,12 @@ def enhanced_clean_text(text):
                 processed_word = stemmer.stem(word)
             else:
                 processed_word = word
-                
+
             if len(processed_word) >= 2:
                 processed_words.append(processed_word)
         except:
             processed_words.append(word)
-    
+
     final_words = list(set(processed_words + domain_keywords))
     result = ' '.join(final_words)
     return result if result else "unknown"
@@ -242,9 +241,9 @@ X = df['cleaned_document']
 y = df['label']
 
 X_temp, X_test, y_temp, y_test = train_test_split(
-    X, y, 
+    X, y,
     test_size=0.15,
-    random_state=42, 
+    random_state=42,
     stratify=y
 )
 
@@ -255,7 +254,7 @@ X_train, X_val, y_train, y_val = train_test_split(
     stratify=y_temp
 )
 
-print(f"\nEnhanced Dataset splits:")
+print(f"\n Dataset splits:")
 print(f"Training: {len(X_train):,} samples ({len(X_train)/len(X)*100:.1f}%)")
 print(f"Validation: {len(X_val):,} samples ({len(X_val)/len(X)*100:.1f}%)")
 print(f"Test: {len(X_test):,} samples ({len(X_test)/len(X)*100:.1f}%)")
@@ -268,7 +267,8 @@ train_dataset = Dataset.from_pandas(train_df)
 val_dataset = Dataset.from_pandas(val_df)
 test_dataset = Dataset.from_pandas(test_df)
 
-print("\nEnhanced datasets created successfully!")
+print("\n datasets created successfully!")
+
 
 
 #6 model training function
@@ -300,8 +300,6 @@ print(f"Training samples: {len(train_dataset)}")
 print(f"Validation samples: {len(val_dataset)}")
 print(f"Test samples: {len(test_dataset)}")
 
-
-
 class_weights = compute_class_weight(
     'balanced',
     classes=np.unique(y_train),
@@ -318,15 +316,15 @@ class FocalLossTrainer(Trainer):
         labels = inputs.get("labels")
         outputs = model(**inputs)
         logits = outputs.get("logits")
-        
+
         device = logits.device
         weights = class_weights.to(device)
-        
+
         # Focal Loss implementation
         ce_loss = torch.nn.functional.cross_entropy(logits, labels, weight=weights, reduction='none')
         pt = torch.exp(-ce_loss)
         focal_loss = (0.5 * (1-pt)**2 * ce_loss).mean()
-        
+
         return (focal_loss, outputs) if return_outputs else focal_loss
 
 model = AutoModelForSequenceClassification.from_pretrained(
@@ -339,12 +337,12 @@ model = AutoModelForSequenceClassification.from_pretrained(
 def compute_enhanced_metrics(p):
     preds = np.argmax(p.predictions, axis=1)
     true_labels = p.label_ids
-    
+
     acc = accuracy_score(true_labels, preds)
     f1_weighted = f1_score(true_labels, preds, average='weighted')
     f1_macro = f1_score(true_labels, preds, average='macro')
     f1_per_class = f1_score(true_labels, preds, average=None)
-    
+
     return {
         "accuracy": acc,
         "f1_weighted": f1_weighted,
@@ -355,7 +353,7 @@ def compute_enhanced_metrics(p):
 
 training_args = TrainingArguments(
     output_dir="./enhanced_results",
-    num_train_epochs=12,
+    num_train_epochs=15,
     per_device_train_batch_size=16,
     per_device_eval_batch_size=32,
     warmup_ratio=0.1,
@@ -378,8 +376,7 @@ training_args = TrainingArguments(
     logging_strategy="steps",
 )
 
-print("model training completed")
-
+print("model setup completed!")
 
 
 #7 training model
@@ -387,10 +384,10 @@ from transformers import TrainerCallback
 class EnhancedTrainingCallback(TrainerCallback):
     def on_epoch_end(self, args, state, control, **kwargs):
         if state.epoch is not None:
-            print(f"Enhanced Epoch {state.epoch} completed")
-    
+            print(f"Epoch {state.epoch} completed")
+
     def on_evaluate(self, args, state, control, metrics, **kwargs):
-        print(f"Enhanced Evaluation - Accuracy: {metrics.get('eval_accuracy', 0):.4f}, F1: {metrics.get('eval_f1_weighted', 0):.4f}")
+        print(f"Evaluation - Accuracy: {metrics.get('eval_accuracy', 0):.4f}, F1: {metrics.get('eval_f1_weighted', 0):.4f}")
 
 trainer = FocalLossTrainer(
     model=model,
@@ -405,19 +402,19 @@ trainer = FocalLossTrainer(
     ]
 )
 
-print("Starting enhanced training")
+print("Starting training")
 print("=" * 60)
 
 train_history = trainer.train()
 
 print("\n" + "=" * 60)
-print("ENHANCED TRAINING COMPLETED!")
+print("TRAINING COMPLETED!")
 print("=" * 60)
 
 eval_results = trainer.evaluate(test_dataset)
-print(f"Enhanced Test Accuracy: {eval_results['eval_accuracy']:.4f}")
-print(f"Enhanced Test F1 (Weighted): {eval_results['eval_f1_weighted']:.4f}")
-print(f"Enhanced Test F1 (Macro): {eval_results['eval_f1_macro']:.4f}")
+print(f"Test Accuracy: {eval_results['eval_accuracy']:.4f}")
+print(f"Test F1 (Weighted): {eval_results['eval_f1_weighted']:.4f}")
+print(f"Test F1 (Macro): {eval_results['eval_f1_macro']:.4f}")
 print(f"Worst Class F1: {eval_results['eval_f1_min']:.4f}")
 print(f"Best Class F1: {eval_results['eval_f1_max']:.4f}")
 
@@ -425,24 +422,23 @@ test_predictions = trainer.predict(test_dataset)
 y_pred = test_predictions.predictions.argmax(-1)
 y_true = test_predictions.label_ids
 
-print("\nEnhanced Classification Report:")
+print("\nClassification Report:")
 print("=" * 50)
 print(classification_report(y_true, y_pred, target_names=[id2label[i] for i in range(len(labels))]))
 
 plt.figure(figsize=(14, 12))
 cm = confusion_matrix(y_true, y_pred)
-sns.heatmap(cm, annot=True, fmt='d', cmap='YlOrRd', 
+sns.heatmap(cm, annot=True, fmt='d', cmap='YlOrRd',
             xticklabels=[id2label[i] for i in range(len(labels))],
             yticklabels=[id2label[i] for i in range(len(labels))],
             cbar_kws={'label': 'Number of Samples'})
-plt.title('Enhanced Confusion Matrix', fontsize=16, fontweight='bold')
+plt.title('Confusion Matrix', fontsize=16, fontweight='bold')
 plt.xlabel('Predicted Label', fontweight='bold')
 plt.ylabel('True Label', fontweight='bold')
 plt.xticks(rotation=45, ha='right')
 plt.yticks(rotation=0)
 plt.tight_layout()
 plt.show()
-
 
 
 # 8 save model
@@ -453,11 +449,10 @@ tokenizer.save_pretrained('./enhanced_multilingual_model')
 with open('./enhanced_multilingual_model/label_mappings.json', 'w') as f:
     json.dump({'label2id': label2id, 'id2label': id2label}, f)
 
-print("Enhanced model saved successfully!")
+print("Model saved successfully!")
 
 
-
-#9 testing for the memes 
+#9 testing for the memes
 model = AutoModelForSequenceClassification.from_pretrained('./enhanced_multilingual_model')
 tokenizer = AutoTokenizer.from_pretrained('./enhanced_multilingual_model')
 
