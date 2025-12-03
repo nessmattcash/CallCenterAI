@@ -1,20 +1,71 @@
-version: '3'
+version: '3.8'
+
 services:
-  tfidf_api:
-    build: .
+  tfidf:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.tfidf
     ports:
       - "8010:8010"
+    volumes:
+      - ./models:/app/models
+    networks:
+      - callcenter_net  
+
+  transformer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.transformer
+    ports:
+      - "8020:8020"
+    volumes:
+      - ./models:/app/models
+    networks:
+      - callcenter_net
+
+  agent:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.agent
+    ports:
+      - "8000:8000"
+    depends_on:
+      - tfidf
+      - transformer
+    networks:
+      - callcenter_net  
+
   mlflow:
-    image: mlflow/mlflow
+    image: ghcr.io/mlflow/mlflow:latest
     ports:
       - "5000:5000"
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./artifacts
     volumes:
-      - ./mlruns:/mlruns
+      - ./mlflow_data:/mlflow
+    networks:
+      - callcenter_net
+
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:latest
     ports:
       - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - callcenter_net
+
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:latest
     ports:
       - "3000:3000"
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - callcenter_net
+
+volumes:
+  grafana_data:

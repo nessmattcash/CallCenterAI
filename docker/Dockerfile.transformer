@@ -3,8 +3,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY req.txt .
+RUN pip install --no-cache-dir -r req.txt
 
 COPY src/transformer_api.py .
 COPY models/enhanced_multilingual_model ./models/enhanced_multilingual_model

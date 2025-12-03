@@ -5,8 +5,8 @@ import re
 
 app = FastAPI(title="CallCenterAI Agent")
 
-TFIDF_URL = "http://localhost:8010/predict"
-TRANSFORMER_URL = "http://localhost:8020/predict"
+TFIDF_URL = "http://tfidf:8010/predict"
+TRANSFORMER_URL = "http://transformer:8020/predict"
 
 def scrub_pii(text: str) -> dict:
     email_pattern = r'\S+@\S+\.\S+'
