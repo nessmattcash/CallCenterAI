@@ -66,6 +66,11 @@ services:
       - grafana_data:/var/lib/grafana
     networks:
       - callcenter_net
+networks:
+  callcenter_net:
+    name: callcenter_net
+    driver: bridge        
 
 volumes:
   grafana_data:
+  mlflow_data:
