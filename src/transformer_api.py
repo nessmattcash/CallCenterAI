@@ -7,7 +7,7 @@ import json
 
 app = FastAPI()
 
-MODEL_PATH = "../models/enhanced_multilingual_model"
+MODEL_PATH = "./models/enhanced_multilingual_model"
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
 

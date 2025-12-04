@@ -11,4 +11,4 @@ COPY models/enhanced_multilingual_model ./models/enhanced_multilingual_model
 
 EXPOSE 8020
 
-CMD ["uvicorn", "transformer_api:app", "--host", "0.0.0.0", "--port", "8020"]  # for future use
+CMD ["uvicorn", "transformer_api:app", "--host", "0.0.0.0", "--port", "8020"]
