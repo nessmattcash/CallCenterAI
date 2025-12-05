@@ -1,0 +1,39 @@
+{
+  "title": "CallCenterAI Monitoring",
+  "panels": [
+    {
+      "title": "Total Requests",
+      "type": "stat",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "targets": [{"expr": "sum(increase(requests_total[5m]))", "refId": "A"}]
+    },
+    {
+      "title": "P95 Latency",
+      "type": "stat",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "targets": [{"expr": "histogram_quantile(0.95, sum(rate(request_latency_seconds_bucket[5m])) by (le)) * 1000", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "ms"}}
+    },
+    {
+      "title": "Model Usage",
+      "type": "piechart",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "targets": [{"expr": "sum by(model_used)(increase(requests_total[5m]))", "refId": "A"}]
+    },
+    {
+      "title": "Request Rate",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
+      "targets": [{"expr": "rate(requests_total[1m])", "refId": "A", "legendFormat": "{{service}} - {{model_used}}"}]
+    },
+    {
+      "title": "Error Rate",
+      "type": "stat",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+      "targets": [{"expr": "sum(rate(requests_total{status_code=\"500\"}[5m])) / sum(rate(requests_total[5m])) * 100", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "percent"}}
+    }
+
+
+  ]
+}

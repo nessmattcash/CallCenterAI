@@ -2,6 +2,25 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import requests
 import re
+from prometheus_client import Counter, Histogram, generate_latest 
+from fastapi import Response
+import time
+
+REQUEST_COUNT = Counter(
+    'requests_total',
+    'Total number of requests',
+    ['service', 'endpoint', 'status_code', 'model_used']
+)
+REQUEST_LATENCY = Histogram(
+    'request_latency_seconds',
+    'Request latency in seconds',
+    ['service', 'endpoint']
+)
+
+PII_SCRUBBED = Counter('pii_scrubbed_total', 'Total PII scrubbed instances', ['pii_type'])
+LANGUAGE_DETECTED = Counter('language_detected_total', 'Language detection counts', ['language'])
+MODEL_CHOICE = Counter('model_choice_total', 'Model selection counts', ['model_name'])
+AGENT_DECISION_REASON = Counter('agent_decision_reason_total', 'Reason for model choice', ['reason'])
 
 app = FastAPI(title="CallCenterAI Agent")
 
@@ -87,33 +106,54 @@ def choose_model(text: str):
 class Ticket(BaseModel):
     text: str
 
+@app.get("/metrics", response_class=Response)
+async def metrics():
+    return Response(generate_latest(), media_type="text/plain")
+
 @app.post("/classify")
 def classify_ticket(ticket: Ticket):
-    clean_text, pii_details = scrub_pii(ticket.text)
-    model_choice, reason = choose_model(clean_text)
-    url = TFIDF_URL if model_choice == "tfidf" else TRANSFORMER_URL
+    start_time = time.time()
     
     try:
+        clean_text, pii_details = scrub_pii(ticket.text)
+        model_choice, reason = choose_model(clean_text)
+        url = TFIDF_URL if model_choice == "tfidf" else TRANSFORMER_URL
+        model_name = "TF-IDF + SVM" if model_choice == "tfidf" else "DistilBERT"
+
         resp = requests.post(url, json={"text": clean_text}, timeout=10)
         resp.raise_for_status()
         result = resp.json()
+
+        # Succès → on logue tout
+        REQUEST_COUNT.labels(
+            service="agent",
+            endpoint="/classify",
+            status_code="200",
+            model_used=model_name.lower().replace(" ", "_")
+        ).inc()
+        REQUEST_LATENCY.labels(service="agent", endpoint="/classify").observe(time.time() - start_time)
+
+        result.update({
+            "model_used": model_name,
+            "model_choice_reason": reason,
+            "pii_scrubbed": ticket.text != clean_text,
+            "pii_details": pii_details,
+            "detected_language": detect_language_simple(ticket.text)
+        })
+        return result
+
     except Exception as e:
+        REQUEST_COUNT.labels(service="agent", endpoint="/classify", status_code="500", model_used="none").inc()
         return {"error": f"Model down: {str(e)}"}
     
-    model_name = "TF-IDF + SVM" if model_choice == "tfidf" else "DistilBERT"
-    
-    result.update({
-        "model_used": model_name,
-        "model_choice_reason": reason,
-        "pii_scrubbed": ticket.text != clean_text,
-        "pii_details": pii_details,
-        "original_text_length": len(ticket.text),
-        "cleaned_text": clean_text,
-        "detected_language": detect_language_simple(ticket.text)
-    })
-    
-    return result
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+#testing commend for i in {1..20}; do 
+  #echo -e "\n=== Test $i ==="
+ # curl -X POST http://localhost:8000/classify \
+  #  -H "Content-Type: application/json" \
+   # --data @tests/test$i.json
+  #sleep 0.3
+#done    

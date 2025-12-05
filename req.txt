@@ -6,3 +6,4 @@ prometheus-client
 pydantic
 scikit-learn
 joblib
+prometheus-client==0.20.0

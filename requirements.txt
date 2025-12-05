@@ -5,4 +5,5 @@ mlflow
 joblib
 nltk
 stop-words==2018.7.23
+prometheus-client==0.20.0
 #pip install -r requirements.txt lezmek tsob 

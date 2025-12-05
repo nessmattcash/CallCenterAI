@@ -11,3 +11,12 @@ scrape_configs:
   - job_name: 'transformer'
     static_configs:
       - targets: ['transformer:8020']
+
+#in prometheus you can test in query:
+# rate(requests_total[5m]) Débit de requêtes par seconde (agent + tfidf + transformer)
+# sum by (service)(increase(requests_total[5m])) Nombre total de requêtes par service
+# histogram_quantile(0.95, sum by (service, endpoint)(rate(request_latency_seconds_bucket[5m]))) Latence 95e percentile par service et endpoint     
+# sum by (model_used)(increase(requests_total[5m])) Nombre de requêtes par modèle utilisé (transformer or tfidf)
+# sum(rate(requests_total{status_code="500"}[5m])) / sum(rate(requests_total[5m])) * 100 Taux d'erreur global (500) en pourcentage
+# increase(requests_total[10m]) 
+#ect ect 
