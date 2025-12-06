@@ -1,39 +1,131 @@
 {
-  "title": "CallCenterAI Monitoring",
+  "title": "CallCenterAI - Complete MLOps Monitoring",
   "panels": [
+    {
+      "title": "Service Health",
+      "type": "stat",
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 0},
+      "targets": [{"expr": "up", "refId": "A"}]
+    },
     {
       "title": "Total Requests",
       "type": "stat",
-      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 0},
       "targets": [{"expr": "sum(increase(requests_total[5m]))", "refId": "A"}]
     },
     {
-      "title": "P95 Latency",
+      "title": "P95 Latency (ms)",
       "type": "stat",
-      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 0},
       "targets": [{"expr": "histogram_quantile(0.95, sum(rate(request_latency_seconds_bucket[5m])) by (le)) * 1000", "refId": "A"}],
       "fieldConfig": {"defaults": {"unit": "ms"}}
     },
     {
-      "title": "Model Usage",
-      "type": "piechart",
-      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
-      "targets": [{"expr": "sum by(model_used)(increase(requests_total[5m]))", "refId": "A"}]
-    },
-    {
-      "title": "Request Rate",
-      "type": "timeseries",
-      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
-      "targets": [{"expr": "rate(requests_total[1m])", "refId": "A", "legendFormat": "{{service}} - {{model_used}}"}]
-    },
-    {
-      "title": "Error Rate",
+      "title": "Error Rate %",
       "type": "stat",
-      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 0},
       "targets": [{"expr": "sum(rate(requests_total{status_code=\"500\"}[5m])) / sum(rate(requests_total[5m])) * 100", "refId": "A"}],
       "fieldConfig": {"defaults": {"unit": "percent"}}
+    },
+    {
+      "title": "Model Decision Distribution",
+      "type": "piechart",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 6},
+      "targets": [{"expr": "sum by(model_name)(increase(model_choice_total[5m]))", "refId": "A"}]
+    },
+    {
+      "title": "Request Rate Over Time",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 6},
+      "targets": [{"expr": "rate(requests_total[1m])", "refId": "A", "legendFormat": "{{service}}"}]
+    },
+    {
+      "title": "TF-IDF vs Transformer Latency",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 6},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum(rate(tfidf_prediction_seconds_bucket[5m])) by (le)) * 1000", "refId": "A", "legendFormat": "TF-IDF"},
+        {"expr": "histogram_quantile(0.95, sum(rate(transformer_prediction_seconds_bucket[5m])) by (le)) * 1000", "refId": "B", "legendFormat": "Transformer"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "ms"}}
+    },
+    {
+      "title": "Model Confidence Comparison",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 14},
+      "targets": [
+        {"expr": "tfidf_confidence", "refId": "A", "legendFormat": "TF-IDF"},
+        {"expr": "transformer_confidence", "refId": "B", "legendFormat": "Transformer"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "percent"}}
+    },
+    {
+      "title": "Detected Languages",
+      "type": "piechart",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 14},
+      "targets": [{"expr": "sum by(language)(increase(language_detected_total[5m]))", "refId": "A"}]
+    },
+    {
+      "title": "PII Detection Types",
+      "type": "bargauge",
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 14},
+      "targets": [{"expr": "sum by(pii_type)(increase(pii_scrubbed_total[5m]))", "refId": "A"}]
+    },
+    {
+      "title": "Average Text Length",
+      "type": "stat",
+      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 22},
+      "targets": [{"expr": "avg(text_length)", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "length"}}
+    },
+    {
+      "title": "Agent Memory Usage (MB)",
+      "type": "stat",
+      "gridPos": {"h": 6, "w": 8, "x": 8, "y": 22},
+      "targets": [{"expr": "agent_memory_usage_bytes / 1024 / 1024", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "MB"}}
+    },
+    {
+      "title": "Agent CPU Usage %",
+      "type": "stat",
+      "gridPos": {"h": 6, "w": 8, "x": 16, "y": 22},
+      "targets": [{"expr": "agent_cpu_usage_percent", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "percent"}}
+    },
+    {
+      "title": "Top Predicted Categories",
+      "type": "bargauge",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 28},
+      "targets": [
+        {"expr": "topk(3, sum by(category)(increase(tfidf_category_total[5m])))", "refId": "A", "legendFormat": "TF-IDF: {{category}}"},
+        {"expr": "topk(3, sum by(category)(increase(transformer_category_total[5m])))", "refId": "B", "legendFormat": "Transformer: {{category}}"}
+      ]
+    },
+    {
+      "title": "Agent Processing Time (P95 ms)",
+      "type": "stat",
+      "gridPos": {"h": 6, "w": 8, "x": 8, "y": 28},
+      "targets": [{"expr": "histogram_quantile(0.95, sum(rate(agent_processing_seconds_bucket[5m])) by (le)) * 1000", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "ms"}}
+    },
+    {
+      "title": "Service Comparison",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 16, "x": 0, "y": 34},
+      "targets": [
+        {"expr": "rate(requests_total{service=\"agent\"}[1m])", "refId": "A", "legendFormat": "Agent"},
+        {"expr": "rate(requests_total{service=\"tfidf\"}[1m])", "refId": "B", "legendFormat": "TF-IDF"},
+        {"expr": "rate(requests_total{service=\"transformer\"}[1m])", "refId": "C", "legendFormat": "Transformer"}
+      ]
+    },
+    {
+      "title": "System Resources Over Time",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 16, "x": 0, "y": 42},
+      "targets": [
+        {"expr": "agent_memory_usage_bytes / 1024 / 1024", "refId": "A", "legendFormat": "Agent Memory MB"},
+        {"expr": "agent_cpu_usage_percent", "refId": "B", "legendFormat": "Agent CPU %"}
+      ]
     }
-
-
   ]
 }

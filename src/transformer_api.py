@@ -14,6 +14,13 @@ REQUEST_COUNT = Counter('requests_total', 'Total requests', ['service', 'endpoin
 REQUEST_LATENCY = Histogram('request_latency_seconds', 'Request latency', ['service', 'endpoint'])
 MODEL_CONFIDENCE = Gauge('model_confidence', 'Confidence of prediction', ['model'])
 PREDICTION_CATEGORY = Counter('prediction_category_total', 'Predictions per category', ['category'])
+TRANSFORMER_PREDICTION_TIME = Histogram('transformer_prediction_seconds', 'Transformer prediction time')
+TRANSFORMER_CONFIDENCE = Gauge('transformer_confidence', 'Confidence score of Transformer')
+TRANSFORMER_CATEGORY = Counter('transformer_category_total', 'Predicted category', ['category'])
+TRANSFORMER_MODEL_INFO = Gauge('transformer_model_info', 'Transformer model info', ['model_name', 'model_version'])
+
+# Add after loading your model
+TRANSFORMER_MODEL_INFO.labels(model_name="distilbert-multilingual", model_version="1.0").set(1)
 
 app = FastAPI(title="Enhanced Multilingual Transformer ")
 
@@ -37,6 +44,7 @@ async def metrics():
 @app.post("/predict")
 async def predict(input: TextInput):
     start_time = time.time()
+    prediction_start = time.time()
     
     try:
         if not input.text.strip():
@@ -56,12 +64,18 @@ async def predict(input: TextInput):
             probs = torch.softmax(outputs.logits, dim=-1)[0]
             pred_id = probs.argmax().item()
             confidence = probs.max().item()
+            pred_label = id2label[pred_id]
 
+        # NEW: Track prediction-specific metrics
+        TRANSFORMER_PREDICTION_TIME.observe(time.time() - prediction_start)
+        TRANSFORMER_CONFIDENCE.set(confidence)
+        TRANSFORMER_CATEGORY.labels(category=pred_label).inc()
+        
         REQUEST_COUNT.labels(service="transformer", endpoint="/predict", status_code="200").inc()
         REQUEST_LATENCY.labels(service="transformer", endpoint="/predict").observe(time.time() - start_time)
 
         return {
-            "category": id2label[pred_id],
+            "category": pred_label,
             "confidence": float(confidence),
             "scores": {id2label[i]: float(p) for i, p in enumerate(probs)}
         }

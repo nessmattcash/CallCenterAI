@@ -2,9 +2,12 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import requests
 import re
-from prometheus_client import Counter, Histogram, generate_latest 
+from prometheus_client import Counter, Histogram, generate_latest, Gauge    
 from fastapi import Response
 import time
+import psutil
+import os
+import resource
 
 REQUEST_COUNT = Counter(
     'requests_total',
@@ -21,6 +24,10 @@ PII_SCRUBBED = Counter('pii_scrubbed_total', 'Total PII scrubbed instances', ['p
 LANGUAGE_DETECTED = Counter('language_detected_total', 'Language detection counts', ['language'])
 MODEL_CHOICE = Counter('model_choice_total', 'Model selection counts', ['model_name'])
 AGENT_DECISION_REASON = Counter('agent_decision_reason_total', 'Reason for model choice', ['reason'])
+AGENT_PROCESSING_TIME = Histogram('agent_processing_seconds', 'Total agent processing time')
+TEXT_LENGTH = Gauge('text_length', 'Text length in characters')
+AGENT_MEMORY_USAGE = Gauge('agent_memory_usage_bytes', 'Agent memory usage in bytes')
+AGENT_CPU_USAGE = Gauge('agent_cpu_usage_percent', 'Agent CPU usage percentage')
 
 app = FastAPI(title="CallCenterAI Agent")
 
@@ -113,10 +120,31 @@ async def metrics():
 @app.post("/classify")
 def classify_ticket(ticket: Ticket):
     start_time = time.time()
+    process = psutil.Process(os.getpid())
     
     try:
+        # Track text length
+        TEXT_LENGTH.set(len(ticket.text))
+        
+        # Track system resources
+        AGENT_MEMORY_USAGE.set(process.memory_info().rss)  # Memory in bytes
+        AGENT_CPU_USAGE.set(process.cpu_percent(interval=0.1))  # CPU %
+        
         clean_text, pii_details = scrub_pii(ticket.text)
+        
+        # Track PII
+        for pii_type, items in pii_details.items():
+            if items:
+                PII_SCRUBBED.labels(pii_type=pii_type).inc(len(items))
+        
+        # Track language
+        detected_lang = detect_language_simple(ticket.text)
+        LANGUAGE_DETECTED.labels(language=detected_lang).inc()
+        
         model_choice, reason = choose_model(clean_text)
+        MODEL_CHOICE.labels(model_name=model_choice).inc()
+        AGENT_DECISION_REASON.labels(reason=reason[:50]).inc()  # Truncate reason
+        
         url = TFIDF_URL if model_choice == "tfidf" else TRANSFORMER_URL
         model_name = "TF-IDF + SVM" if model_choice == "tfidf" else "DistilBERT"
 
@@ -124,7 +152,9 @@ def classify_ticket(ticket: Ticket):
         resp.raise_for_status()
         result = resp.json()
 
-        # Succès → on logue tout
+        # Track total processing time
+        AGENT_PROCESSING_TIME.observe(time.time() - start_time)
+        
         REQUEST_COUNT.labels(
             service="agent",
             endpoint="/classify",
@@ -138,7 +168,7 @@ def classify_ticket(ticket: Ticket):
             "model_choice_reason": reason,
             "pii_scrubbed": ticket.text != clean_text,
             "pii_details": pii_details,
-            "detected_language": detect_language_simple(ticket.text)
+            "detected_language": detected_lang
         })
         return result
 

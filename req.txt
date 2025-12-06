@@ -2,7 +2,7 @@ fastapi
 uvicorn
 torch
 transformers
-prometheus-client
+mlflow
 pydantic
 scikit-learn
 joblib

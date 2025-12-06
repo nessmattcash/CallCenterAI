@@ -18,6 +18,12 @@ REQUEST_LATENCY = Histogram(
 )
 MODEL_CONFIDENCE = Gauge('model_confidence', 'Confidence of prediction', ['model'])
 PREDICTION_CATEGORY = Counter('prediction_category_total', 'Predictions per category', ['category'])
+TFIDF_PREDICTION_TIME = Histogram('tfidf_prediction_seconds', 'TF-IDF prediction time')
+TFIDF_CONFIDENCE = Gauge('tfidf_confidence', 'Confidence score of TF-IDF')
+TFIDF_CATEGORY = Counter('tfidf_category_total', 'Predicted category', ['category'])
+TFIDF_MODEL_INFO = Gauge('tfidf_model_info', 'TF-IDF model info', ['model_name', 'model_version'])
+
+TFIDF_MODEL_INFO.labels(model_name="tfidf_svm", model_version="1.0").set(1)
 
 app = FastAPI(title="TF-IDF + SVM Service")
 
@@ -35,6 +41,7 @@ async def metrics():
 @app.post("/predict")
 def predict(input: TextInput):
     start_time = time.time()
+    prediction_start = time.time()
     
     try:
         if not input.text.strip():
@@ -44,6 +51,11 @@ def predict(input: TextInput):
         pred = model.predict([input.text])[0]
         proba = model.predict_proba([input.text])[0].max()
 
+        # NEW: Track prediction-specific metrics
+        TFIDF_PREDICTION_TIME.observe(time.time() - prediction_start)
+        TFIDF_CONFIDENCE.set(proba)
+        TFIDF_CATEGORY.labels(category=pred).inc()
+        
         REQUEST_COUNT.labels(service="tfidf", endpoint="/predict", status_code="200").inc()
         REQUEST_LATENCY.labels(service="tfidf", endpoint="/predict").observe(time.time() - start_time)
 
@@ -53,7 +65,6 @@ def predict(input: TextInput):
         }
 
     except Exception as e:
-        # Erreur → on logue 500
         REQUEST_COUNT.labels(service="tfidf", endpoint="/predict", status_code="500").inc()
         raise e
 
