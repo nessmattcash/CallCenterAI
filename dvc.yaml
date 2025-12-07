@@ -1,0 +1,15 @@
+stages:
+  train_tfidf:
+    cmd: python src/train.py --model tfidf
+    deps:
+      - data/all_tickets_processed_improved_v3.csv
+      - src/train.py
+    outs:
+      - models/tfidf_svm_best.pkl
+
+  train_transformer:
+    cmd: python src/train.py --model transformer
+    deps:
+      - data/all_tickets_processed_improved_v3.csv
+    outs:
+      - models/enhanced_multilingual_model
