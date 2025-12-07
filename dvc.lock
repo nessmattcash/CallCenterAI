@@ -1,0 +1,31 @@
+schema: '2.0'
+stages:
+  train_tfidf:
+    cmd: python src/train.py --model tfidf
+    deps:
+    - path: data/all_tickets_processed_improved_v3.csv
+      hash: md5
+      md5: a05aa13d753884547cc46e6f525bfb82
+      size: 14568920
+    - path: src/train.py
+      hash: md5
+      md5: a66862dfafe3c8cf347116841216d380
+      size: 5570
+    outs:
+    - path: models/tfidf_svm_best.pkl
+      hash: md5
+      md5: 96619e403dccf18e85f6edee6ad76ddc
+      size: 10899312
+  train_transformer:
+    cmd: python src/train.py --model transformer
+    deps:
+    - path: data/all_tickets_processed_improved_v3.csv
+      hash: md5
+      md5: a05aa13d753884547cc46e6f525bfb82
+      size: 14568920
+    outs:
+    - path: models/enhanced_multilingual_model
+      hash: md5
+      md5: d43e0b927f6e8a0296425c66e08c2238.dir
+      size: 545259279
+      nfiles: 8
