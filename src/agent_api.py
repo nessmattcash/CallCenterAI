@@ -7,7 +7,6 @@ from fastapi import Response
 import time
 import psutil
 import os
-import resource
 
 REQUEST_COUNT = Counter(
     'requests_total',

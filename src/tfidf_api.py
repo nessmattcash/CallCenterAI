@@ -5,14 +5,15 @@ import joblib
 import time
 from prometheus_client import Counter, Histogram, generate_latest
 from prometheus_client import Gauge
+from pathlib import Path
 #beh chouft hethom touskie prometheus endpoint
 REQUEST_COUNT = Counter(
-    'requests_total',
+    'tfidf_requests_total',  # CHANGE THIS
     'Total number of requests',
     ['service', 'endpoint', 'status_code']
 )
 REQUEST_LATENCY = Histogram(
-    'request_latency_seconds',
+    'tfidf_request_latency_seconds',
     'Request latency in seconds',
     ['service', 'endpoint']
 )
@@ -28,7 +29,17 @@ TFIDF_MODEL_INFO.labels(model_name="tfidf_svm", model_version="1.0").set(1)
 app = FastAPI(title="TF-IDF + SVM Service")
 
 # Chargement du modèle
-model = joblib.load("../models/tfidf_svm_best.pkl")
+BASE_DIR = Path(__file__).parent.parent
+MODEL_PATH = BASE_DIR / "models" / "tfidf_svm_best.pkl"
+
+# Check if file exists
+if not MODEL_PATH.exists():
+    # Try alternative path
+    MODEL_PATH = Path("models/tfidf_svm_best.pkl")
+    if not MODEL_PATH.exists():
+        MODEL_PATH = Path("../models/tfidf_svm_best.pkl")
+
+model = joblib.load(str(MODEL_PATH))
 
 class TextInput(BaseModel):
     text: str

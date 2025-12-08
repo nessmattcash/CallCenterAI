@@ -10,10 +10,10 @@ from fastapi import Response
 from fastapi.responses import PlainTextResponse
 
 
-REQUEST_COUNT = Counter('requests_total', 'Total requests', ['service', 'endpoint', 'status_code'])
-REQUEST_LATENCY = Histogram('request_latency_seconds', 'Request latency', ['service', 'endpoint'])
-MODEL_CONFIDENCE = Gauge('model_confidence', 'Confidence of prediction', ['model'])
-PREDICTION_CATEGORY = Counter('prediction_category_total', 'Predictions per category', ['category'])
+REQUEST_COUNT = Counter('transformer_requests_total', 'Total requests', ['service', 'endpoint', 'status_code'])  
+REQUEST_LATENCY = Histogram('transformer_request_latency_seconds', 'Request latency in seconds', ['service', 'endpoint'])
+MODEL_CONFIDENCE = Gauge('transformer_model_confidence', 'Confidence of prediction', ['model']) 
+PREDICTION_CATEGORY = Counter('transformer_prediction_category_total', 'Predictions per category', ['category'])  
 TRANSFORMER_PREDICTION_TIME = Histogram('transformer_prediction_seconds', 'Transformer prediction time')
 TRANSFORMER_CONFIDENCE = Gauge('transformer_confidence', 'Confidence score of Transformer')
 TRANSFORMER_CATEGORY = Counter('transformer_category_total', 'Predicted category', ['category'])
