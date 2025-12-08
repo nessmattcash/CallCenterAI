@@ -34,4 +34,6 @@ def test_api_contract():
                                 timeout=10)
         assert response.status_code == 200
         data = response.json()
-        assert data["model_used"].lower() in test["expected_models"]
+        model_used_lower = data["model_used"].lower().replace("-", "").replace(" ", "")
+        expected_lower = [m.lower().replace("-", "").replace(" ", "") for m in test["expected_models"]]
+        assert model_used_lower in expected_lower

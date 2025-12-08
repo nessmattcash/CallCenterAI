@@ -59,22 +59,57 @@ def scrub_pii(text: str) -> dict:
     return text, pii_found
 
 def detect_language_simple(text: str) -> str:
+    if not text or not text.strip():
+        return "unknown"
+    
     text_lower = text.lower()
     
-    arabic_chars = len(re.findall(r'[\u0600-\u06FF]', text))
-    french_words = len(re.findall(r'\b(je|tu|il|elle|nous|vous|ils|elles|le|la|les|un|une|des|et|mais|ou|où|donc|car|ne|pas|de|du|des|à|au|aux|avec|pour|sur|dans|par|est|son|ses|mon|ton|votre|notre|leur)\b', text_lower))
-    english_words = len(re.findall(r'\b(the|and|for|with|that|this|have|from|what|when|where|why|how|you|your|need|help|please|thank|thanks|my|i|me|we|us|our|can|could|would|should|will|shall|may|might|must)\b', text_lower))
-    
-    if arabic_chars > 5:
+    # Arabic detection
+    if re.search(r'[\u0600-\u06FF]', text):
         return "ar"
     
-    if french_words > english_words and french_words >= 2:
-        return "fr"
+    # Split text into words
+    words = text_lower.split()
     
-    if english_words >= 2:
+    # French keywords
+    french_keywords = ['je', 'tu', 'il', 'elle', 'nous', 'vous', 'ils', 'elles',
+                      'le', 'la', 'les', 'un', 'une', 'des', 'et', 'mais', 'ou',
+                      'où', 'donc', 'car', 'de', 'du', 'des', 'à', 'au', 'aux',
+                      'avec', 'pour', 'sur', 'dans', 'par', 'est', 'son', 'ses',
+                      'mon', 'ton', 'votre', 'notre', 'leur', 'ma', 'ta', 'sa']
+    
+    # English keywords  
+    english_keywords = ['the', 'and', 'for', 'with', 'that', 'this', 'have', 'from',
+                       'what', 'when', 'where', 'why', 'how', 'you', 'your', 'need',
+                       'help', 'please', 'my', 'i', 'me', 'we', 'us', 'our', 'can',
+                       'could', 'would', 'should', 'will', 'shall', 'may', 'might']
+    
+    # Count occurrences
+    french_count = 0
+    english_count = 0
+    
+    for word in words:
+        if word in french_keywords:
+            french_count += 1
+        if word in english_keywords:
+            english_count += 1
+    
+    # Also check for French-specific characters
+    if re.search(r'[éèêëàâäçîïôöùûüÿ]', text_lower):
+        french_count += 2
+    
+    # Decide
+    if french_count > english_count and french_count >= 1:
+        return "fr"
+    elif english_count > 0:
         return "en"
     
-    if any(word in text_lower for word in ["email", "phone", "cin", "name", "printer", "password", "login"]):
+    # Default to English for technical/short texts
+    tech_terms = ['computer', 'printer', 'password', 'login', 'email', 'phone',
+                 'network', 'server', 'software', 'hardware', 'system', 'broken',
+                 'problem', 'issue', 'error', 'fix', 'help', 'need', 'want']
+    
+    if any(term in text_lower for term in tech_terms):
         return "en"
     
     return "unknown"
