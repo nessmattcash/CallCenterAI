@@ -1,11 +1,11 @@
 # src/tfidf_api.py
-from fastapi import FastAPI, Response
-from pydantic import BaseModel
-import joblib
 import time
-from prometheus_client import Counter, Histogram, generate_latest
-from prometheus_client import Gauge
 from pathlib import Path
+
+import joblib
+from fastapi import FastAPI, Response
+from prometheus_client import Counter, Gauge, Histogram, generate_latest
+from pydantic import BaseModel
 
 # beh chouft hethom touskie prometheus endpoint
 REQUEST_COUNT = Counter(

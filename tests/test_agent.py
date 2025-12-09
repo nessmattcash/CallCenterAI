@@ -1,7 +1,8 @@
 # tests/test_agent.py
-import sys
 import os
+import sys
 import unittest.mock as mock
+
 import pytest
 
 sys.path.append("src")
@@ -16,7 +17,8 @@ with mock.patch("agent_api.requests.post") as mock_post:
 
     # Import after mock
     from fastapi.testclient import TestClient
-    from agent_api import app, scrub_pii, detect_language_simple, choose_model
+
+    from agent_api import app, choose_model, detect_language_simple, scrub_pii
 
     client = TestClient(app)
 

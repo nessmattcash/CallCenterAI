@@ -1,12 +1,12 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-import requests
-import re
-from prometheus_client import Counter, Histogram, generate_latest, Gauge
-from fastapi import Response
-import time
-import psutil
 import os
+import re
+import time
+
+import psutil
+import requests
+from fastapi import FastAPI, Response
+from prometheus_client import Counter, Gauge, Histogram, generate_latest
+from pydantic import BaseModel
 
 REQUEST_COUNT = Counter(
     "requests_total",

@@ -1,7 +1,8 @@
-import pandas as pd
-import joblib
 import os
+
+import joblib
 import mlflow
+import pandas as pd
 
 
 def test_training_data_exists():

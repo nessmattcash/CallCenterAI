@@ -1,21 +1,22 @@
-import pandas as pd
-import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import LinearSVC
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.metrics import accuracy_score, f1_score, classification_report
-from sklearn.utils.class_weight import compute_class_weight
+import re
+import warnings
+
+import joblib
 import mlflow
 import mlflow.sklearn
-import joblib
 import nltk
+import numpy as np
+import pandas as pd
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
-import re
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import accuracy_score, classification_report, f1_score
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVC
+from sklearn.utils.class_weight import compute_class_weight
 from stop_words import get_stop_words
-import warnings
 
 warnings.filterwarnings("ignore")
 

@@ -1,5 +1,5 @@
-import pandas as pd
 import joblib
+import pandas as pd
 
 
 def test_data_exists():

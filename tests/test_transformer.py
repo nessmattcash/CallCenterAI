@@ -1,9 +1,10 @@
-import sys
 import os
+import sys
 
 sys.path.append("src")
 
 from fastapi.testclient import TestClient
+
 from transformer_api import app
 
 client = TestClient(app)

@@ -1,14 +1,13 @@
 # src/transformer_api.py
-from fastapi import FastAPI
-from pydantic import BaseModel
-import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import json
-from prometheus_client import Counter, Histogram, generate_latest, Gauge
 import time
-from fastapi import Response
-from fastapi.responses import PlainTextResponse
 
+import torch
+from fastapi import FastAPI, Response
+from fastapi.responses import PlainTextResponse
+from prometheus_client import Counter, Gauge, Histogram, generate_latest
+from pydantic import BaseModel
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 REQUEST_COUNT = Counter(
     "transformer_requests_total",
