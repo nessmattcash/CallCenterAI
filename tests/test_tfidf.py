@@ -1,11 +1,13 @@
 import sys
 import os
-sys.path.append('src')
+
+sys.path.append("src")
 
 from fastapi.testclient import TestClient
 from tfidf_api import app
 
 client = TestClient(app)
+
 
 def test_tfidf_predict():
     response = client.post("/predict", json={"text": "My computer won't turn on"})
@@ -15,6 +17,7 @@ def test_tfidf_predict():
     assert "confidence" in data
     assert isinstance(data["confidence"], float)
 
+
 def test_tfidf_empty():
     response = client.post("/predict", json={"text": ""})
     # Accept either 200 or 400
@@ -23,13 +26,16 @@ def test_tfidf_empty():
         data = response.json()
         assert "error" in data
 
+
 def test_tfidf_metrics():
     response = client.get("/metrics")
     assert response.status_code == 200
     assert "text/plain" in response.headers["content-type"]
 
+
 def test_model_loading():
     import joblib
+
     model = joblib.load("models/tfidf_svm_best.pkl")
     assert model is not None
     predictions = model.predict(["test text"])

@@ -5,22 +5,44 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import json
 from prometheus_client import Counter, Histogram, generate_latest, Gauge
-import time 
+import time
 from fastapi import Response
 from fastapi.responses import PlainTextResponse
 
 
-REQUEST_COUNT = Counter('transformer_requests_total', 'Total requests', ['service', 'endpoint', 'status_code'])  
-REQUEST_LATENCY = Histogram('transformer_request_latency_seconds', 'Request latency in seconds', ['service', 'endpoint'])
-MODEL_CONFIDENCE = Gauge('transformer_model_confidence', 'Confidence of prediction', ['model']) 
-PREDICTION_CATEGORY = Counter('transformer_prediction_category_total', 'Predictions per category', ['category'])  
-TRANSFORMER_PREDICTION_TIME = Histogram('transformer_prediction_seconds', 'Transformer prediction time')
-TRANSFORMER_CONFIDENCE = Gauge('transformer_confidence', 'Confidence score of Transformer')
-TRANSFORMER_CATEGORY = Counter('transformer_category_total', 'Predicted category', ['category'])
-TRANSFORMER_MODEL_INFO = Gauge('transformer_model_info', 'Transformer model info', ['model_name', 'model_version'])
+REQUEST_COUNT = Counter(
+    "transformer_requests_total",
+    "Total requests",
+    ["service", "endpoint", "status_code"],
+)
+REQUEST_LATENCY = Histogram(
+    "transformer_request_latency_seconds",
+    "Request latency in seconds",
+    ["service", "endpoint"],
+)
+MODEL_CONFIDENCE = Gauge(
+    "transformer_model_confidence", "Confidence of prediction", ["model"]
+)
+PREDICTION_CATEGORY = Counter(
+    "transformer_prediction_category_total", "Predictions per category", ["category"]
+)
+TRANSFORMER_PREDICTION_TIME = Histogram(
+    "transformer_prediction_seconds", "Transformer prediction time"
+)
+TRANSFORMER_CONFIDENCE = Gauge(
+    "transformer_confidence", "Confidence score of Transformer"
+)
+TRANSFORMER_CATEGORY = Counter(
+    "transformer_category_total", "Predicted category", ["category"]
+)
+TRANSFORMER_MODEL_INFO = Gauge(
+    "transformer_model_info", "Transformer model info", ["model_name", "model_version"]
+)
 
 # Add after loading your model
-TRANSFORMER_MODEL_INFO.labels(model_name="distilbert-multilingual", model_version="1.0").set(1)
+TRANSFORMER_MODEL_INFO.labels(
+    model_name="distilbert-multilingual", model_version="1.0"
+).set(1)
 
 app = FastAPI(title="Enhanced Multilingual Transformer ")
 
@@ -34,21 +56,26 @@ id2label = {int(k): v for k, v in mappings["id2label"].items()}  # Fix: str → 
 
 model.eval()
 
+
 class TextInput(BaseModel):
     text: str
+
 
 @app.get("/metrics", response_class=Response)
 async def metrics():
     return Response(generate_latest(), media_type="text/plain")
 
+
 @app.post("/predict")
 async def predict(input: TextInput):
     start_time = time.time()
     prediction_start = time.time()
-    
+
     try:
         if not input.text.strip():
-            REQUEST_COUNT.labels(service="transformer", endpoint="/predict", status_code="400").inc()
+            REQUEST_COUNT.labels(
+                service="transformer", endpoint="/predict", status_code="400"
+            ).inc()
             return {"error": "Empty text"}
 
         inputs = tokenizer(
@@ -56,7 +83,7 @@ async def predict(input: TextInput):
             truncation=True,
             padding=True,
             max_length=256,
-            return_tensors="pt"
+            return_tensors="pt",
         )
 
         with torch.no_grad():
@@ -70,21 +97,29 @@ async def predict(input: TextInput):
         TRANSFORMER_PREDICTION_TIME.observe(time.time() - prediction_start)
         TRANSFORMER_CONFIDENCE.set(confidence)
         TRANSFORMER_CATEGORY.labels(category=pred_label).inc()
-        
-        REQUEST_COUNT.labels(service="transformer", endpoint="/predict", status_code="200").inc()
-        REQUEST_LATENCY.labels(service="transformer", endpoint="/predict").observe(time.time() - start_time)
+
+        REQUEST_COUNT.labels(
+            service="transformer", endpoint="/predict", status_code="200"
+        ).inc()
+        REQUEST_LATENCY.labels(service="transformer", endpoint="/predict").observe(
+            time.time() - start_time
+        )
 
         return {
             "category": pred_label,
             "confidence": float(confidence),
-            "scores": {id2label[i]: float(p) for i, p in enumerate(probs)}
+            "scores": {id2label[i]: float(p) for i, p in enumerate(probs)},
         }
 
     except Exception as e:
-        REQUEST_COUNT.labels(service="transformer", endpoint="/predict", status_code="500").inc()
+        REQUEST_COUNT.labels(
+            service="transformer", endpoint="/predict", status_code="500"
+        ).inc()
         raise e
-    
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8020)
-# beh si elyes fi cmd bash testi curl -X POST "http://localhost:8020/predict" -d "{\"text\": \"My computer won't start.\"}" -H "Content-Type: application/json" betbi3a fi /src python transformer_api.py    
+
+    uvicorn.run(app, host="0.0.0.0", port=8020) # nosec B104
+# beh si elyes fi cmd bash testi curl -X POST "http://localhost:8020/predict" -d "{\"text\": \"My computer won't start.\"}" -H "Content-Type: application/json" betbi3a fi /src python transformer_api.py
