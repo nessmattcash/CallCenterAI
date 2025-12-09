@@ -332,7 +332,7 @@ def classify_ticket(ticket: Ticket):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000) # nosec B104
+    uvicorn.run(app, host="0.0.0.0", port=8000)  # nosec B104
 
 # testing commend for i in {1..20}; do
 # echo -e "\n=== Test $i ==="

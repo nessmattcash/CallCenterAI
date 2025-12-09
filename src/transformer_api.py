@@ -47,8 +47,8 @@ TRANSFORMER_MODEL_INFO.labels(
 app = FastAPI(title="Enhanced Multilingual Transformer ")
 
 MODEL_PATH = "./models/enhanced_multilingual_model"
-tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)  # nosec B615
+model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)  # nosec B615
 
 with open(f"{MODEL_PATH}/label_mappings.json") as f:
     mappings = json.load(f)
@@ -121,5 +121,5 @@ async def predict(input: TextInput):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8020) # nosec B104
+    uvicorn.run(app, host="0.0.0.0", port=8020)  # nosec B104
 # beh si elyes fi cmd bash testi curl -X POST "http://localhost:8020/predict" -d "{\"text\": \"My computer won't start.\"}" -H "Content-Type: application/json" betbi3a fi /src python transformer_api.py

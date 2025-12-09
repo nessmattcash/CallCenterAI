@@ -96,4 +96,4 @@ def predict(input: TextInput):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8010) # nosec B104
+    uvicorn.run(app, host="0.0.0.0", port=8010)  # nosec B104
