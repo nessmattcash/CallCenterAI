@@ -1,19 +1,33 @@
 🚀 CallCenterAI – Intelligent Customer Ticket Classification
-<div align="center">
-https://img.shields.io/badge/MLOps-Pipeline-blue
-https://img.shields.io/badge/Python-3.11-green
-https://img.shields.io/badge/FastAPI-0.104-lightblue
-https://img.shields.io/badge/Docker-Containers-orange
-https://img.shields.io/badge/License-MIT-yellow
-https://img.shields.io/badge/Tests-23%2520passed-brightgreen
-https://img.shields.io/badge/Coverage-92%2525-success
-https://img.shields.io/badge/Version-1.0.0-blueviolet
+<p align="center">
+  <img src="https://img.shields.io/badge/MLOps-Pipeline-blue" />
+  <img src="https://img.shields.io/badge/Python-3.11-green" />
+  <img src="https://img.shields.io/badge/FastAPI-0.104-lightblue" />
+  <img src="https://img.shields.io/badge/Docker-Containers-orange" />
+  <img src="https://img.shields.io/badge/License-MIT-yellow" />
+</p>
 
-Production-Ready MLOps System | Dual NLP Architecture | Real-Time Intelligence
+<p align="center">
+  <img src="https://img.shields.io/badge/Tests-23%20passed-brightgreen" />
+  <img src="https://img.shields.io/badge/Coverage-92%25-success" />
+  <img src="https://img.shields.io/badge/Version-1.0.0-blueviolet" />
+</p>
 
-https://img.shields.io/github/stars/nessmattcash/CallCenterAI?style=social
-https://img.shields.io/github/issues/nessmattcash/CallCenterAI
-https://img.shields.io/docker/pulls/callcenterai/agent
+<p align="center">
+  <b>Production-Ready MLOps System</b> • Dual NLP Architecture • Real-Time Intelligence
+</p>
+
+<p align="center">
+  <a href="https://github.com/nessmattcash/CallCenterAI/stargazers">
+    <img src="https://img.shields.io/github/stars/nessmattcash/CallCenterAI?style=social" />
+  </a>
+  <a href="https://github.com/nessmattcash/CallCenterAI/issues">
+    <img src="https://img.shields.io/github/issues/nessmattcash/CallCenterAI" />
+  </a>
+  <a href="https://hub.docker.com/r/callcenterai/agent">
+    <img src="https://img.shields.io/docker/pulls/callcenterai/agent" />
+  </a>
+</p>
 
 </div>
 📋 Table of Contents
