@@ -81,29 +81,7 @@ Real-Time Analytics: Live metrics and performance tracking
 
 🏗️ Architecture Overview
 System Architecture
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![alt text](deepseek_mermaid_20251215_c6cd46-1.svg)
 Service Communication
 Component	Port	Protocol	Responsibility
 AI Agent	8000	HTTP/JSON	Intelligent routing & PII scrubbing
@@ -741,7 +719,7 @@ Model versioning, experiment comparison, and artifact storage
 All services running in isolated Docker containers
 
 6. 📈 Grafana Analytics Dashboard (Port 3000)
-https://cap1.png
+![alt text](cap1.png) 
 Business intelligence and performance monitoring dashboard
 
 👥 Contributing
@@ -833,5 +811,4 @@ Want to contribute? Read our guide
 
 </div>
 
-![alt text](cap1.png) // grafana
 
