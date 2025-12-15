@@ -81,7 +81,8 @@ Real-Time Analytics: Live metrics and performance tracking
 
 🏗️ Architecture Overview
 System Architecture
-![alt text](deepseek_mermaid_20251215_c6cd46-1.svg)
+https://deepseek_mermaid_20251215_c6cd46.svg
+
 Service Communication
 Component	Port	Protocol	Responsibility
 AI Agent	8000	HTTP/JSON	Intelligent routing & PII scrubbing
@@ -162,7 +163,7 @@ Transformer Service (:8020)
 bash
 curl -X POST http://localhost:8020/predict \
   -H "Content-Type: application/json" \
-  -d '{"text": "J'ai des problèmes d'accès au système de facturation en ligne"}'
+  -d "{\"text\": \"J'ai des problèmes d'accès au système de facturation en ligne\"}"
 📊 3. Metrics & Monitoring
 bash
 # Prometheus metrics endpoint
@@ -697,6 +698,7 @@ docker exec -it callcenterai-agent-1 /bin/bash
 
 # Check Prometheus metrics
 curl http://localhost:9090/api/v1/query?query=http_requests_total
+
 📸 System Screenshots
 1. 🎯 AI Agent Service (Port 8000)
 ![alt text](<Capture d'écran 2025-12-15 181336.png>)
