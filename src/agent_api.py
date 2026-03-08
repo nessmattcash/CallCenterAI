@@ -7,7 +7,7 @@ import requests
 from fastapi import FastAPI, Response
 from prometheus_client import Counter, Gauge, Histogram, generate_latest
 from pydantic import BaseModel
-
+import langdetect
 REQUEST_COUNT = Counter(
     "requests_total",
     "Total number of requests",
